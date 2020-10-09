@@ -7,11 +7,9 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include "common/Shader.hpp"
+#include <SDL2/SDL.h>
 #include "common/helperFuncs.h"
+//#include <SDL/SDL.h>
 
 
 
@@ -33,11 +31,8 @@ private:
 	int PointsAmount;
 	int *Cells;
 	point_t *Points;
-	GLFWwindow *window;
-	GLfloat g_vertex_buffer_data[9];
-	GLuint programID;
-	GLuint VertexArrayID;
-	GLuint vertexbuffer;
+	SDL_Window *window;
+	SDL_Renderer *renderer;
 };
 
 

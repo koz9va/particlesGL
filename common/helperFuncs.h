@@ -5,6 +5,9 @@
 #ifndef GL_HELPERFUNCS_H
 #define GL_HELPERFUNCS_H
 
+#include <SDL_quit.h>
+#include <SDL_pixels.h>
+
 typedef struct point {
 	int x;
 	int y;
@@ -15,4 +18,5 @@ typedef struct point {
 
 void MatchPointsToCells(point_t *points, int *cells);
 
+void HSVToRGB(float H, float S, float V, SDL_Color *out) ;
 #endif //GL_HELPERFUNCS_H
