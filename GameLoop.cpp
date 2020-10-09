@@ -9,10 +9,32 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int EXITKEY, int SamplesNum, int RES
 		wWidth(wWIDTH), wHeight(wHEIGHT), ExitKey(EXITKEY),
 		PointsAmount(POINTSAM), gravity(G)
 		{
-	SDL_Init(SDL_INIT_EVERYTHING);
+	int i, deb;
 
+	SDL_Init(SDL_INIT_EVERYTHING);
+	SandColor.r = 219;
+	SandColor.g = 209;
+	SandColor.b = 179;
+	SandColor.a = 255;
 	Cells = new int [wWidth * wHeight];
 	Points = new point_t [PointsAmount];
+
+
+	for(i = 0; i < wWidth * wHeight; ++i) {
+		Cells[i] = -1;
+	}
+
+	for(i = 0; i < PointsAmount/2; ++i) {
+		Points[i].y = wHeight/2 + 10;
+		Points[i].x = wWidth/2 + i;
+		deb = wWidth/2 + i;
+	}
+	for(i = PointsAmount/2; i < PointsAmount; ++i) {
+		Points[i].y = wHeight/2;
+		Points[i].x = wWidth/2 + (PointsAmount - i);
+		deb = (PointsAmount - i);
+	}
+
 
 }
 
@@ -45,9 +67,13 @@ void GameLoop::start() {
 		}
 		if (++i > 360)
 			i = 0;
-		HSVToRGB(i, 100, 100, &rainbow);
-		SDL_SetRenderDrawColor(renderer, rainbow.r, rainbow.g, rainbow.b, 255);
+//		HSVToRGB((float)i, 100.0f, 100.0f, &rainbow);
+//		SDL_SetRenderDrawColor(renderer, rainbow.r, rainbow.g, rainbow.b, 255);
+
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
+		updateSand();
+		renderSand();
 		SDL_RenderPresent(renderer);
 	}
 	std::cout << "Window closed\n";
@@ -57,7 +83,7 @@ void GameLoop::updateSand() {
 	int i;
 
 	for(i = 0; i < PointsAmount; ++i) {
-		if(Points[i].y + 1 > wHeight) {
+		if(Points[i].y + 2 > wHeight) {
 			Points[i].updatedFrame = false;
 			continue;
 		}
@@ -83,9 +109,17 @@ void GameLoop::updateSand() {
 		Points[i].updatedFrame = false;
 		}
 
-
-
 	}
+void GameLoop::renderSand() {
+	int i;
+
+	SDL_SetRenderDrawColor(renderer, SandColor.r, SandColor.g, SandColor.b, SandColor.a);
+	MatchPointsToCells(Points, Cells, PointsAmount, wWidth, wHeight);
+	for(i = 0; i < PointsAmount; ++i) {
+		SDL_RenderDrawPoint(renderer, Points[i].x, Points[i].y);
+	}
+
+}
 
 
 

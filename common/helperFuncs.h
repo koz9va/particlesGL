@@ -16,7 +16,7 @@ typedef struct point {
 }point_t;
 
 
-void MatchPointsToCells(point_t *points, int *cells);
+void MatchPointsToCells(point_t *points, int *cells, int pointsAmount, int w, int h);
 
 void HSVToRGB(float H, float S, float V, SDL_Color *out) ;
 #endif //GL_HELPERFUNCS_H

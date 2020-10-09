@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 	}
 	GameLoop game(atoi(argv[1]), atoi(argv[2]),
 				  0, 4,
-				  0, 100,
+				  0, 10,
 				  0.98f
 	);
 

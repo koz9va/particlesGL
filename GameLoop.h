@@ -21,7 +21,7 @@ public:
 		    int RESIZABLE, int POINTSAM, float G
 		  );
 	void start();
-	void updateSand();
+
 	float gravity;
 	~GameLoop();
 private:
@@ -31,8 +31,11 @@ private:
 	int PointsAmount;
 	int *Cells;
 	point_t *Points;
+	SDL_Color SandColor;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
+	void updateSand();
+	void renderSand();
 };
 
 
