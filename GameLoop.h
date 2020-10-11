@@ -12,8 +12,7 @@
 #endif
 #include <iostream>
 #include <cstdlib>
-
-#include "common/helperFuncs.h"
+#include <algorithm>
 #include "common/SlotMap.h"
 //#include <SDL/SDL.h>
 
@@ -21,7 +20,7 @@ typedef struct point {
 	int64_t id;
 	int x;
 	int y;
-	float velocity;
+	float velocity; //@todo implement velocity and update sand behavior in genera
 	bool updatedFrame;
 }point_t;
 
@@ -52,6 +51,7 @@ private:
 	void updateSand();
 	void renderSand();
 	void addPoint(int x, int y);
+	void removePoint(int x, int y);
 };
 
 

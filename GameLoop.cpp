@@ -57,6 +57,9 @@ void GameLoop::start() {
 			addPoint(x, y);
 
 		}
+		if(SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+			removePoint(x, y);
+		}
 //		if (++i > 360)
 //			i = 0;
 //		HSVToRGB((float)i, 100.0f, 100.0f, &rainbow);
@@ -74,8 +77,12 @@ void GameLoop::start() {
 void GameLoop::updateSand() {
 	int i;
 	point_t *iter;
-	for(i = 0; i < points.amount; ++i) {
-		iter = points.get_object(i);
+	for(i = 0; i < pointsIds.size(); ++i) {
+		iter = points.get_object(pointsIds[i]);
+		if(!iter) {
+			pointsIds.erase(pointsIds.begin() + i);
+			continue;
+		}
 		if((*iter).y + 2 > wHeight) {
 			(*iter).updatedFrame = false;
 			continue;
@@ -108,8 +115,8 @@ void GameLoop::renderSand() {
 	point_t *iter;
 	SDL_SetRenderDrawColor(renderer, SandColor.r, SandColor.g, SandColor.b, SandColor.a);
 	MatchPointsToCells();
-	for(i = 0; i < points.amount; ++i) {
-		iter = points.get_object(i);
+	for(i = 0; i < pointsIds.size(); ++i) {
+		iter = points.get_object(pointsIds[i]);
 		SDL_RenderDrawPoint(renderer, (*iter).x, (*iter).y);
 	}
 
@@ -119,14 +126,20 @@ void GameLoop::MatchPointsToCells() {
 	int i;
 	point_t *iter;
 	memset(cells, 0, wWidth * wHeight * sizeof(point_t*));
-	for(i = 0; i < points.amount; ++i) {
-		iter = points.get_object(i);
+	for(i = 0; i < pointsIds.size(); ++i) {
+		iter = points.get_object(pointsIds[i]);
+		if(!iter) {
+			pointsIds.erase(pointsIds.begin() + i);
+			continue;
+		}
 		if((*iter).x > wWidth || (*iter).y > wHeight)
 			continue;
 		cells[wWidth * (*iter).x + (*iter).y] = iter;
 	}
 }
-
+//@todo implement resizable sand addition(in circle for example)
+//@todo maybe add water
+//@todo think about cool shit for portfolio(cuz just sand is boring)
 void GameLoop::addPoint(int x, int y) {
 	point_t *point;
 	if(wWidth * x + y >= (wWidth * wHeight)) {
@@ -142,6 +155,12 @@ void GameLoop::addPoint(int x, int y) {
 	point->y = y;
 }
 
+void GameLoop::removePoint(int x, int y) {
+	if(cells[wWidth * x + y] == nullptr)
+		return;
+	points.destroy_object((*cells[wWidth * x + y]).id);
+
+}
 
 
 

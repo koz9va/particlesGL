@@ -4,8 +4,6 @@ project(gl)
 set(CMAKE_CXX_STANDARD 14)
 
 
-
-
 find_package(SDL2 REQUIRED)
 message(STATUS "SLD2 included at ${SDL2_INCLUDE_DIRS}")
 include_directories(${SDL2_INCLUDE_DIRS})

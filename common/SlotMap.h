@@ -22,6 +22,7 @@ public:
 		object *chunk;
 		if(free_list.empty()) {
 			chunk = new object[chunk_size];
+			free_list.reserve(chunk_size);
 			for(i = chunk_size - 1; i >= 0; --i) {
 				chunk[i].id = object_table.size() * chunk_size + i;
 				free_list.push_back(object_table.size() * chunk_size + i);
@@ -36,8 +37,10 @@ public:
 
 	object *get_object(int64_t id) {
 		object *obj;
+
 		obj = object_table[(id & 0xFFFFFFFF) / chunk_size] + ((id & 0xFFFFFFFF) % chunk_size);
 		return obj->id != id ? nullptr : obj;
+
 	}
 
 	void destroy_object(int64_t id) {
@@ -47,6 +50,12 @@ public:
 		free_list.push_back(id & 0xFFFFFFFF);
 		if(amount < 1)
 			--amount;
+	}
+	~SlotMap() {
+		int i;
+		for(i = 0; i < object_table.size(); ++i) {
+			delete [] object_table[i];
+		}
 	}
 };
 
