@@ -4,15 +4,15 @@
 #include "helperFuncs.h"
 #include <cmath>
 
-void MatchPointsToCells(point_t *points, int *cells, int pointsAmount, int w, int h) {
-	int i;
-	for(i = 0; i < pointsAmount; ++i) {
-		if(points[i].x > w || points[i].y > h)
-			continue;
-
-		cells[w * points[i].x + points[i].y] = i;
-	}
-}
+//void MatchPointsToCells(point_t *points, int *cells, int pointsAmount, int w, int h) {
+//	int i;
+//	for(i = 0; i < pointsAmount; ++i) {
+//		if(points[i].x > w || points[i].y > h)
+//			continue;
+//
+//		cells[w * points[i].x + points[i].y] = i;
+//	}
+//}
 void HSVToRGB(float H, float S, float V, SDL_Color *out) {
 	float s, v, C, X, m, r, g, b;
 	s = S/100.0f;

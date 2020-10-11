@@ -9,31 +9,18 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int EXITKEY, int SamplesNum, int RES
 		wWidth(wWIDTH), wHeight(wHEIGHT), ExitKey(EXITKEY),
 		PointsAmount(POINTSAM), gravity(G)
 		{
-	int i, deb;
+	int i;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SandColor.r = 219;
 	SandColor.g = 209;
 	SandColor.b = 179;
 	SandColor.a = 255;
-	Cells = new int [wWidth * wHeight];
-	Points = new point_t [PointsAmount];
+	cells = new point_t *[wWidth * wHeight];
+	memset(cells, 0, wWidth * wHeight *sizeof(point_t*));
 
+	pointsIds.reserve(512);
 
-	for(i = 0; i < wWidth * wHeight; ++i) {
-		Cells[i] = -1;
-	}
-
-	for(i = 0; i < PointsAmount/2; ++i) {
-		Points[i].y = wHeight/2 + 10;
-		Points[i].x = wWidth/2 + i;
-		deb = wWidth/2 + i;
-	}
-	for(i = PointsAmount/2; i < PointsAmount; ++i) {
-		Points[i].y = wHeight/2;
-		Points[i].x = wWidth/2 + (PointsAmount - i);
-		deb = (PointsAmount - i);
-	}
 
 
 }
@@ -43,13 +30,12 @@ GameLoop::~GameLoop() {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
-	delete [] Cells;
-	delete [] Points;
+	delete [] cells;
 }
 
 void GameLoop::start() {
 	bool quit;
-	int i;
+	int i, x, y, px, py;
 	SDL_Color rainbow;
 	SDL_Event input;
 
@@ -64,9 +50,15 @@ void GameLoop::start() {
 			if (input.type == SDL_QUIT) {
 				quit = true;
 			}
+
 		}
-		if (++i > 360)
-			i = 0;
+		if((SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT))) {
+			//std::cout << "x: " << x << " y: " << y << "\n";
+			addPoint(x, y);
+
+		}
+//		if (++i > 360)
+//			i = 0;
 //		HSVToRGB((float)i, 100.0f, 100.0f, &rainbow);
 //		SDL_SetRenderDrawColor(renderer, rainbow.r, rainbow.g, rainbow.b, 255);
 
@@ -81,44 +73,73 @@ void GameLoop::start() {
 
 void GameLoop::updateSand() {
 	int i;
-
-	for(i = 0; i < PointsAmount; ++i) {
-		if(Points[i].y + 2 > wHeight) {
-			Points[i].updatedFrame = false;
+	point_t *iter;
+	for(i = 0; i < points.amount; ++i) {
+		iter = points.get_object(i);
+		if((*iter).y + 2 > wHeight) {
+			(*iter).updatedFrame = false;
 			continue;
 		}
-		if(Cells[wWidth * Points[i].x + (Points[i].y + 1)] < 0) {
-			++Points[i].y;
-			Points[i].updatedFrame = true;
+		if(cells[wWidth * (*iter).x + ((*iter).y + 1)] == nullptr) {
+			++(*iter).y;
+			(*iter).updatedFrame = true;
 			continue;
 		}
-		if(((Points[i].x) < wWidth) &&
-		Cells[wWidth * (Points[i].x + 1) + (Points[i].y + 1)] < 0) {
-			++Points[i].y;
-			++Points[i].x;
-			Points[i].updatedFrame = true;
+		if((((*iter).x) < wWidth) &&
+		cells[wWidth * ((*iter).x + 1) + ((*iter).y + 1)] == nullptr) {
+			++(*iter).y;
+			++(*iter).x;
+			(*iter).updatedFrame = true;
 			continue;
 		}
-		if((Points[i].x > 0) &&
-		Cells[wWidth * (Points[i].x - 1) + (Points[i].y + 1)]  < 0) {
-			++Points[i].y;
-			--Points[i].x;
-			Points[i].updatedFrame = true;
+		if(((*iter).x > 0) &&
+		cells[wWidth * ((*iter).x - 1) + ((*iter).y + 1)] == nullptr) {
+			++(*iter).y;
+			--(*iter).x;
+			(*iter).updatedFrame = true;
 			continue;
 		}
-		Points[i].updatedFrame = false;
+		(*iter).updatedFrame = false;
 		}
 
 	}
 void GameLoop::renderSand() {
 	int i;
-
+	point_t *iter;
 	SDL_SetRenderDrawColor(renderer, SandColor.r, SandColor.g, SandColor.b, SandColor.a);
-	MatchPointsToCells(Points, Cells, PointsAmount, wWidth, wHeight);
-	for(i = 0; i < PointsAmount; ++i) {
-		SDL_RenderDrawPoint(renderer, Points[i].x, Points[i].y);
+	MatchPointsToCells();
+	for(i = 0; i < points.amount; ++i) {
+		iter = points.get_object(i);
+		SDL_RenderDrawPoint(renderer, (*iter).x, (*iter).y);
 	}
 
+}
+
+void GameLoop::MatchPointsToCells() {
+	int i;
+	point_t *iter;
+	memset(cells, 0, wWidth * wHeight * sizeof(point_t*));
+	for(i = 0; i < points.amount; ++i) {
+		iter = points.get_object(i);
+		if((*iter).x > wWidth || (*iter).y > wHeight)
+			continue;
+		cells[wWidth * (*iter).x + (*iter).y] = iter;
+	}
+}
+
+void GameLoop::addPoint(int x, int y) {
+	point_t *point;
+	if(wWidth * x + y >= (wWidth * wHeight)) {
+//		std::cout << "cursor out of coordinates :(\n";
+		return;
+	}
+	if(cells[wWidth * x + y] != nullptr) {
+		return;
+	}
+	pointsIds.push_back(points.create_object());
+	point = points.get_object(pointsIds.back());
+	point->x = x;
+	point->y = y;
 }
 
 
