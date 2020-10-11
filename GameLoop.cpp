@@ -19,7 +19,7 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int EXITKEY, int SamplesNum, int RES
 	cells = new point_t *[wWidth * wHeight];
 	memset(cells, 0, wWidth * wHeight *sizeof(point_t*));
 
-	pointsIds.reserve(512);
+	pointsIds.reserve(2048);
 
 
 

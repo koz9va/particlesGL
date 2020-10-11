@@ -5,9 +5,14 @@
 #ifndef GL_GAMELOOP_H
 #define GL_GAMELOOP_H
 
+#ifdef __APPLE__
+#include <SDL.h>
+#else
+#include <SDL2/SDL.h>
+#endif
 #include <iostream>
 #include <cstdlib>
-#include <SDL2/SDL.h>
+
 #include "common/helperFuncs.h"
 #include "common/SlotMap.h"
 //#include <SDL/SDL.h>
