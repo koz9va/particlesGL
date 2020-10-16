@@ -13,42 +13,40 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include "common/point.h"
 #include "common/SlotMap.h"
+#include "common/CUDARuntime/Particles.cuh"
 //#include <SDL/SDL.h>
 
-typedef struct point {
-	int64_t id;
-	int x;
-	int y;
-	float velocity; //@todo implement velocity and update sand behavior in genera
-	bool updatedFrame;
-}point_t;
+
 
 
 class GameLoop {
 public:
 	GameLoop(
 			int wWIDTH, int wHEIGHT,
-		    int EXITKEY, int SamplesNum,
+		     int SamplesNum,
 		    int RESIZABLE, int POINTSAM, float G
 		  );
 	void start();
 	float gravity;
 	~GameLoop();
-	const size_t chunk_size = 256;
 private:
 	int wWidth;
 	int wHeight;
-	int ExitKey;
+	int MaxLen;
+	//point_t **cells;
+	//	std::vector<int64_t> pointsIds;
+	//	SlotMap<point_t> points;
+	point_t *points;
+	int *cells;
+	point_t *points_d;
+	int *cells_d;
 	int PointsAmount;
-	point_t **cells;
-	std::vector<int64_t> pointsIds;
-	SlotMap<point_t> points;
 	SDL_Color SandColor;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
-	void MatchPointsToCells();
-	void updateSand();
+//	void MatchPointsToCells();
 	void renderSand();
 	void addPoint(int x, int y);
 	void removePoint(int x, int y);

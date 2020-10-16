@@ -6,10 +6,13 @@ int main(int argc, char *argv[]) {
 		std::cout << "Wrong number of arguments :(\n";
 		return -1;
 	}
-	GameLoop game(atoi(argv[1]), atoi(argv[2]),
-				  0, 4,
-				  0, 10,
-				  0.98f
+	GameLoop game(
+			atoi(argv[1]),
+			atoi(argv[2]),
+			 4,
+			  0,
+			  10,
+			  0.98f
 	);
 
 	game.start();
