@@ -23,15 +23,13 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int SamplesNum, int RESIZABLE, int P
 	cells = new int [MaxLen];
 	points = new point_t [MaxLen];
 
-	cu::AllocPointsAndCells(wWidth, wHeight, &points_d, &cells_d);
-
 	PointsAmount = 0;
 
 	for(i = 0; i < MaxLen; ++i) {
 		cells[i] = -1;
 	}
 
-
+	cu::AllocPointsAndCells(wWidth, wHeight, &points_d, &cells_d, points, cells, PointsAmount);
 
 }
 
@@ -59,21 +57,28 @@ void GameLoop::start() {
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 
+	cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, 1);
 
 	while(!quit) {
 		while (SDL_PollEvent(&input) > 0) {
 			if (input.type == SDL_QUIT) {
 				quit = true;
 			}
-
 		}
+
+		updatedFrame = 0;
+
 		if((SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT))) {
 			//std::cout << "x: " << x << " y: " << y << "\n";
 			addPoint(x, y);
 
+			updatedFrame = 1;
+
 		}
 		if(SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
 			removePoint(x, y);
+
+			updatedFrame = 1;
 		}
 
 //		HSVToRGB((float)i, 100.0f, 100.0f, &rainbow);
@@ -81,7 +86,7 @@ void GameLoop::start() {
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
-		cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight);
+		cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, updatedFrame);
 		renderSand();
 		SDL_RenderPresent(renderer);
 	}
@@ -129,7 +134,6 @@ void GameLoop::addPoint(int x, int y) {
 		return;
 	}
 
-
 	id = PointsAmount++;
 
 	points[id].x = x;
@@ -154,7 +158,7 @@ void GameLoop::removePoint(int x, int y) {
 	}
 	--PointsAmount;
 
-	for(i = 0; i < PointsAmount; ++i) {
+	for(i = 0; i < PointsAmount; ++i) { //@todo you can just -1 indexes of left points idiot
 		cells[wWidth * points[i].x + points[i].y] = i;
 	}
 }

@@ -6,6 +6,7 @@
 typedef struct point {
 	int x;
 	int y;
-	float velocity; //@todo implement velocity and update sand behavior in genera
+	float velocity; //@todo implement velocity and update sand behavior in general
+	
 }point_t;
 #endif //GL_POINT_H

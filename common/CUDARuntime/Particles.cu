@@ -24,7 +24,7 @@ __global__ void Sand_kernel(point_t *points_d, int *cells_d, int pAm, int w, int
 	int id;
 	point_t *p;
 
-	id = blockIdx.x *blockDim.x + threadIdx.x;
+	id = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if(id < pAm) {
 		p = points_d + id;
@@ -59,24 +59,25 @@ __global__ void Sand_kernel(point_t *points_d, int *cells_d, int pAm, int w, int
 namespace cu {
 	constexpr int blockSize = 256;
 	extern "C"{
-	void updateSand(point_t *points, int *cells, point_t *points_d, int *cells_d, int pAm, int w, int h)
+	void updateSand(point_t *points, int *cells, point_t *points_d, int *cells_d, int pAm, int w, int h, int updated)
 		{
 		int NumOfBlocks;
-		cudaMemcpy(points_d, points, sizeof(point_t) * pAm, cudaMemcpyHostToDevice);
-		cudaMemcpy(cells_d, cells, sizeof(int) * w * h, cudaMemcpyHostToDevice);
-
+		if(updated == 1) {
+			cudaMemcpy(points_d, points, sizeof(point_t) * pAm, cudaMemcpyHostToDevice);
+			cudaMemcpy(cells_d, cells, sizeof(int) * w * h, cudaMemcpyHostToDevice);
+		}
 		NumOfBlocks = (int)((double)pAm/(double)blockSize) + 1;
 
 		Sand_kernel<<<NumOfBlocks, blockSize>>>(points_d, cells_d, pAm, w, h);
-
 
 		cudaMemcpy(points, points_d, sizeof(point_t) * pAm, cudaMemcpyDeviceToHost);
 		cudaMemcpy(cells, cells_d, sizeof(int) * w * h, cudaMemcpyDeviceToHost);
 
 		}
-	void AllocPointsAndCells(int w, int h, point_t **points_d, int **cells_d) {
+	void AllocPointsAndCells(int w, int h, point_t **points_d, int **cells_d, point_t *points, int *cells, int pAm) {
 		cudaMalloc(points_d, sizeof(point_t) * w * h);
 		cudaMalloc(cells_d, sizeof(int) * w * h);
+
 	}
 	void FreePointsAndCells(point_t *points_d, int *cells_d) {
 		cudaFree(points_d);

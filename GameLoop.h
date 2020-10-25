@@ -35,6 +35,7 @@ private:
 	int wWidth;
 	int wHeight;
 	int MaxLen;
+	int updatedFrame;
 	//point_t **cells;
 	//	std::vector<int64_t> pointsIds;
 	//	SlotMap<point_t> points;
