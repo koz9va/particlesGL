@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.17)
 project(gl CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
-
-
+set(CUDAXX /opt/cuda/bin/nvcc)
 find_package(SDL2 REQUIRED)
 message(STATUS "SLD2 included at ${SDL2_INCLUDE_DIRS}")
 include_directories(${SDL2_INCLUDE_DIRS})

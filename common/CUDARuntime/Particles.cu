@@ -21,15 +21,17 @@ inline void gpuAssert(cudaError_t code, char *file, int line, bool abort = true)
 }
 __global__ void Sand_kernel(point_t *points_d, int *cells_d, int pAm, int w, int h) {
 
-	int id;
+	int id, i;
 	point_t *p;
 
 	id = blockIdx.x * blockDim.x + threadIdx.x;
-
+/*
 	if(id < pAm) {
 		p = points_d + id;
-		if(p->y + 2 > h)
+		if(p->y + 2 > h) {
 			return;
+		}
+
 
 		if(cells_d[w * p->x + (p->y + 1)] == -1) {
 			cells_d[w * p->x + p->y] = -1;
@@ -52,6 +54,61 @@ __global__ void Sand_kernel(point_t *points_d, int *cells_d, int pAm, int w, int
 			return;
 		}
 
+	}
+ */
+	if(id < pAm) {
+		p = points_d + id;
+		for(i = 1; i < (int)ceil(p->speed); ++i) {
+			if((cells_d[w * p->x + (p->y + i)] != -1) || (p->y + i) >= h) {
+				--i;
+				break;
+			}
+		}
+
+		if(i > 0) {
+			cells_d[w * p->x + p->y] = -1;
+			cells_d[w * p->x + p->y + i] = id;
+			p->y += i;
+			if (i >= (int)p->speed)
+				p->speed += gr;
+			else
+				p->speed = 1;
+			return;
+		}
+		for(i = 1; i < (int)ceil(p->speed); ++i) {
+			if((cells_d[w * (p->x + i) + (p->y + i)] != -1) || (p->y + i) >= h || (p->x + i) < w) {
+				--i;
+				break;
+			}
+		}
+
+		if(i > 0) {
+			cells_d[w * p->x + p->y] = -1;
+			cells_d[w * (p->x + i) + p->y + i] = id;
+			p->y += i;
+			if (i >= (int)p->speed)
+				p->speed += gr;
+			else
+				p->speed = 1;
+			return;
+		}
+		for(i = 1; i < (int)ceil(p->speed); ++i) {
+			if((cells_d[w * (p->x - i) + (p->y + i)] != -1) || (p->y + i) >= h || (p->x - i) > 0) {
+				--i;
+				break;
+			}
+		}
+
+		if(i > 0) {
+			cells_d[w * p->x + p->y] = -1;
+			cells_d[w * (p->x - i) + p->y + i] = id;
+			p->y += i;
+			if (i >= (int)p->speed)
+				p->speed += gr;
+			else
+				p->speed = 1;
+			return;
+		}
 	}
 	//@todo implement sand velocity and call this shit from updateSand();
 }

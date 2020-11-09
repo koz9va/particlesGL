@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 			 4,
 			  0,
 			  10,
-			  0.98f
+			  9.8f
 	);
 
 	game.start();

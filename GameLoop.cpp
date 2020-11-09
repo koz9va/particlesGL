@@ -29,7 +29,7 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int SamplesNum, int RESIZABLE, int P
 		cells[i] = -1;
 	}
 
-	cu::AllocPointsAndCells(wWidth, wHeight, &points_d, &cells_d, points, cells, PointsAmount);
+//	cu::AllocPointsAndCells(wWidth, wHeight, &points_d, &cells_d, points, cells, PointsAmount);
 
 }
 
@@ -39,7 +39,7 @@ GameLoop::~GameLoop() {
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
-	cu::FreePointsAndCells(points_d, cells_d);
+//	cu::FreePointsAndCells(points_d, cells_d);
 
 	delete [] cells;
 	delete [] points;
@@ -86,7 +86,8 @@ void GameLoop::start() {
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
-		cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, updatedFrame);
+//		cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, updatedFrame);
+		updateSand();
 		renderSand();
 		SDL_RenderPresent(renderer);
 	}
@@ -138,7 +139,8 @@ void GameLoop::addPoint(int x, int y) {
 
 	points[id].x = x;
 	points[id].y = y;
-	points[id].velocity = gravity;
+	points[id].velocity = 0.2;
+	points[id].speed = 1.0;
 
 }
 
@@ -163,6 +165,81 @@ void GameLoop::removePoint(int x, int y) {
 	}
 }
 
+void GameLoop::updateSand() {
+	int i, j;
+	point_t *p;
+	bool collided;
+	for(j = 0; j < PointsAmount; ++j) {
+		collided = false;
+		p = points + j;
+		for (i = 1; i < (int) ceil(p->speed); ++i) {
+
+			if ((cells[wWidth * p->x + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3) {
+				collided = true;
+				break;
+			}
+		}
+
+		if(i > 1 || (i == 1 && !collided)) {
+			--i;
+			cells[wWidth * p->x + p->y] = -1;
+			cells[wWidth * p->x + p->y + i] = j;
+			p->y += i;
+			if(!collided && p->speed + p->velocity <= gravity) {
+				p->speed += p->velocity;
+			} else if(collided)
+				p->speed = 1;
+			continue;
+		}
+
+
+		collided = false;
+		for (i = 1; i < (int) ceil(p->speed); ++i) {
+			if ((cells[wWidth * (p->x + i) + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3 || (p->x + i) > wWidth - 3) {
+				collided = true;
+				break;
+			}
+		}
+
+		if(i > 1 || (i == 1 && !collided)) {
+			--i;
+			cells[wWidth * p->x + p->y] = -1;
+			cells[wWidth * (p->x + i) + p->y + i] = j;
+			p->y += i;
+			p->x += i;
+			if(!collided && p->speed / 2.0 >= 1.0) {
+				p->speed /= 1.25;
+			} else
+				p->speed = 1;
+			continue;
+		}
+
+		collided = false;
+		for (i = 1; i < (int) ceil(p->speed); ++i) {
+			if ((cells[wWidth * (p->x - i) + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3 || (p->x - i) < 3) {
+				collided = true;
+				break;
+			}
+		}
+
+		if(i > 1 || (i == 1 && !collided)) {
+			--i;
+			cells[wWidth * p->x + p->y] = -1;
+			cells[wWidth * (p->x + i) + p->y + i] = j;
+			p->y += i;
+			p->x -= i;
+			if(!collided && p->speed / 2.0 <= 1.0) {
+				p->speed /= 1.25;
+			} else
+				p->speed = 1;
+			continue;
+		}
+
+
+	}
+
+
+}
 
 
 

@@ -49,6 +49,7 @@ private:
 	SDL_Renderer *renderer;
 //	void MatchPointsToCells();
 	void renderSand();
+	void updateSand();
 	void addPoint(int x, int y);
 	void removePoint(int x, int y);
 };
