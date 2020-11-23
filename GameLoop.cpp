@@ -107,31 +107,13 @@ void GameLoop::renderSand() {
 }
 
 
-
-//void GameLoop::MatchPointsToCells() {
-//	int i;
-//	point_t *iter;
-//
-//	for(i = 0; i < wWidth * wHeight; ++i) {
-//		cells[i] = -1;
-//	}
-//
-//	for(i = 0; i < PointsAmount ++i) {
-//
-//		if((*iter).x > wWidth || (*iter).y > wHeight)
-//			continue;
-//		cells[wWidth * (*iter).x + (*iter).y] = iter;
-//	}
-//}
 //@todo implement resizable sand addition(in circle for example)
 //@todo maybe add water
 //@todo think about cool shit for portfolio(cuz just sand is boring)
 void GameLoop::addPoint(int x, int y) {
 	int id;
-	if(wWidth * x + y >= (wWidth * wHeight)) {//		std::cout << "cursor out of coordinates :(\n";
-		return;
-	}
-	if(cells[wWidth * x + y] != -1) {
+
+	if(cells[x + y * wWidth] != -1) {
 		return;
 	}
 
@@ -146,13 +128,13 @@ void GameLoop::addPoint(int x, int y) {
 
 void GameLoop::removePoint(int x, int y) {
 	int i;
-	if(cells[wWidth * x + y] == -1)
+	if(cells[x + y * wWidth] == -1)
 		return;
 
-	//points[cells[wWidth * x + y]].isFree = 1;
-	if(cells[wWidth * x + y] < PointsAmount - 1) {
-		memmove(points + cells[wWidth * x + y], points + cells[wWidth * x + y] + 1,
-				sizeof(point_t) * (PointsAmount - cells[wWidth * x +y] - 1) );
+	//points[cells[x + y * wWidth]].isFree = 1;
+	if(cells[x + y * wWidth] < PointsAmount - 1) {
+		memmove(points + cells[x + y * wWidth], points + cells[x + y * wWidth] + 1,
+				sizeof(point_t) * (PointsAmount - cells[x +y *  wWidth] - 1) );
 	}
 
 	for(i = 0; i < MaxLen; ++i) {
@@ -161,7 +143,7 @@ void GameLoop::removePoint(int x, int y) {
 	--PointsAmount;
 
 	for(i = 0; i < PointsAmount; ++i) { //@todo you can just -1 indexes of left points idiot
-		cells[wWidth * points[i].x + points[i].y] = i;
+		cells[points[i].x + points[i].y * wWidth] = i;
 	}
 }
 
@@ -174,7 +156,7 @@ void GameLoop::updateSand() {
 		p = points + j;
 		for (i = 1; i < (int) ceil(p->speed); ++i) {
 
-			if ((cells[wWidth * p->x + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3) {
+			if ((cells[ p->x + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3) {
 				collided = true;
 				break;
 			}
@@ -182,8 +164,8 @@ void GameLoop::updateSand() {
 
 		if(i > 1 || (i == 1 && !collided)) {
 			--i;
-			cells[wWidth * p->x + p->y] = -1;
-			cells[wWidth * p->x + p->y + i] = j;
+			cells[p->x + p->y * wWidth ] = -1;
+			cells[p->x + (p->y + i) * wWidth] = j;
 			p->y += i;
 			if(!collided && p->speed + p->velocity <= gravity) {
 				p->speed += p->velocity;
@@ -195,7 +177,7 @@ void GameLoop::updateSand() {
 
 		collided = false;
 		for (i = 1; i < (int) ceil(p->speed); ++i) {
-			if ((cells[wWidth * (p->x + i) + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3 || (p->x + i) > wWidth - 3) {
+			if ((cells[(p->x + i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 || (p->x + i) > wWidth - 3) {
 				collided = true;
 				break;
 			}
@@ -203,8 +185,8 @@ void GameLoop::updateSand() {
 
 		if(i > 1 || (i == 1 && !collided)) {
 			--i;
-			cells[wWidth * p->x + p->y] = -1;
-			cells[wWidth * (p->x + i) + p->y + i] = j;
+			cells[p->x + p->y * wWidth] = -1;
+			cells[(p->x + i) + (p->y + i) * wWidth] = j;
 			p->y += i;
 			p->x += i;
 			if(!collided && p->speed / 2.0 >= 1.0) {
@@ -216,7 +198,7 @@ void GameLoop::updateSand() {
 
 		collided = false;
 		for (i = 1; i < (int) ceil(p->speed); ++i) {
-			if ((cells[wWidth * (p->x - i) + (p->y + i)] != -1) || (p->y + i) >= wHeight - 3 || (p->x - i) < 3) {
+			if ((cells[(p->x - i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 || (p->x - i) < 3) {
 				collided = true;
 				break;
 			}
@@ -224,8 +206,8 @@ void GameLoop::updateSand() {
 
 		if(i > 1 || (i == 1 && !collided)) {
 			--i;
-			cells[wWidth * p->x + p->y] = -1;
-			cells[wWidth * (p->x + i) + p->y + i] = j;
+			cells[p->x + p->y * wWidth] = -1;
+			cells[(p->x + i) + (p->y + i) * wWidth] = j;
 			p->y += i;
 			p->x -= i;
 			if(!collided && p->speed / 2.0 <= 1.0) {
