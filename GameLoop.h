@@ -44,14 +44,17 @@ private:
 	point_t *points_d;
 	int *cells_d;
 	int PointsAmount;
+	particleTypes inputType;
 	SDL_Color SandColor;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
+	SDL_Event event;
 //	void MatchPointsToCells();
 	void renderSand();
 	void updateSand();
 	void addPoint(int x, int y);
 	void removePoint(int x, int y);
+	void setParticleValue();
 };
 
 

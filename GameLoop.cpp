@@ -17,6 +17,7 @@ GameLoop::GameLoop(int wWIDTH, int wHEIGHT, int SamplesNum, int RESIZABLE, int P
 	SandColor.b = 179;
 	SandColor.a = 255;
 
+	inputType = sand;
 
 	MaxLen = wWidth * wHeight;
 
@@ -48,8 +49,9 @@ GameLoop::~GameLoop() {
 void GameLoop::start() {
 	bool quit;
 	int x, y;
+	Uint32 mouseState;
 
-	SDL_Event input;
+
 
 	quit = false;
 	window = SDL_CreateWindow("Sand", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -57,36 +59,38 @@ void GameLoop::start() {
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 
-	cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, 1);
+//	cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, 1);
 
 	while(!quit) {
-		while (SDL_PollEvent(&input) > 0) {
-			if (input.type == SDL_QUIT) {
+		while (SDL_PollEvent(&event) > 0) {
+
+			if(event.type == SDL_QUIT) {
 				quit = true;
+			} else {
+				setParticleValue();
 			}
 		}
-
 		updatedFrame = 0;
 
-		if((SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT))) {
+		mouseState = SDL_GetMouseState(&x, &y);
+
+		if(mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 			//std::cout << "x: " << x << " y: " << y << "\n";
 			addPoint(x, y);
 
 			updatedFrame = 1;
 
 		}
-		if(SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+		if(mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
 			removePoint(x, y);
 
 			updatedFrame = 1;
 		}
 
-//		HSVToRGB((float)i, 100.0f, 100.0f, &rainbow);
-//		SDL_SetRenderDrawColor(renderer, rainbow.r, rainbow.g, rainbow.b, 255);
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
-//		cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, updatedFrame);
+	//	cu::updateSand(points, cells, points_d, cells_d, PointsAmount, wWidth, wHeight, updatedFrame);
 		updateSand();
 		renderSand();
 		SDL_RenderPresent(renderer);
@@ -97,19 +101,32 @@ void GameLoop::start() {
 
 void GameLoop::renderSand() {
 	int i;
+	particleTypes prevColor;
+
 
 	SDL_SetRenderDrawColor(renderer, SandColor.r, SandColor.g, SandColor.b, SandColor.a);
-
+	prevColor = sand;
 	for(i = 0; i < PointsAmount; ++i) {
+		if(prevColor != points[i].type) {
+			switch (points[i].type) {
+				case sand:
+					SDL_SetRenderDrawColor(renderer, SandColor.r, SandColor.g, SandColor.b, SandColor.a);
+					break;
+				case water:
+					SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+					break;
+				case rock:
+					SDL_SetRenderDrawColor(renderer, 211, 211, 211, 255);
+			}
+		}
 		SDL_RenderDrawPoint(renderer, points[i].x, points[i].y);
+		prevColor = points[i].type;
 	}
 
 }
 
 
 //@todo implement resizable sand addition(in circle for example)
-//@todo maybe add water
-//@todo think about cool shit for portfolio(cuz just sand is boring)
 void GameLoop::addPoint(int x, int y) {
 	int id;
 
@@ -119,10 +136,12 @@ void GameLoop::addPoint(int x, int y) {
 
 	id = PointsAmount++;
 
+	cells[x + y * wWidth] = id;
 	points[id].x = x;
 	points[id].y = y;
 	points[id].velocity = 0.2;
 	points[id].speed = 1.0;
+	points[id].type = inputType;
 
 }
 
@@ -138,11 +157,11 @@ void GameLoop::removePoint(int x, int y) {
 	}
 
 	for(i = 0; i < MaxLen; ++i) {
-		cells[i] = -1; //@todo think how to remove shit here and on 158
+		cells[i] = -1;
 	}
 	--PointsAmount;
 
-	for(i = 0; i < PointsAmount; ++i) { //@todo you can just -1 indexes of left points idiot
+	for(i = 0; i < PointsAmount; ++i) { //@todo you can just -1 indexes of left points
 		cells[points[i].x + points[i].y * wWidth] = i;
 	}
 }
@@ -154,73 +173,95 @@ void GameLoop::updateSand() {
 	for(j = 0; j < PointsAmount; ++j) {
 		collided = false;
 		p = points + j;
-		for (i = 1; i < (int) ceil(p->speed); ++i) {
+		if (p->type == sand) {
 
-			if ((cells[ p->x + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3) {
-				collided = true;
-				break;
+			for (i = 1; i < (int) ceil(p->speed); ++i) {
+
+				if ((cells[p->x + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3) {
+					collided = true;
+					break;
+				}
 			}
-		}
 
-		if(i > 1 || (i == 1 && !collided)) {
-			--i;
-			cells[p->x + p->y * wWidth ] = -1;
-			cells[p->x + (p->y + i) * wWidth] = j;
-			p->y += i;
-			if(!collided && p->speed + p->velocity <= gravity) {
-				p->speed += p->velocity;
-			} else if(collided)
-				p->speed = 1;
-			continue;
-		}
-
-
-		collided = false;
-		for (i = 1; i < (int) ceil(p->speed); ++i) {
-			if ((cells[(p->x + i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 || (p->x + i) > wWidth - 3) {
-				collided = true;
-				break;
+			if (i > 1 || (i == 1 && !collided)) {
+				--i;
+				cells[p->x + p->y * wWidth] = -1;
+				cells[p->x + (p->y + i) * wWidth] = j;
+				p->y += i;
+				if (!collided && p->speed + p->velocity <= gravity) {
+					p->speed += p->velocity;
+				} else if (collided)
+					p->speed = 1;
+				continue;
 			}
-		}
 
-		if(i > 1 || (i == 1 && !collided)) {
-			--i;
-			cells[p->x + p->y * wWidth] = -1;
-			cells[(p->x + i) + (p->y + i) * wWidth] = j;
-			p->y += i;
-			p->x += i;
-			if(!collided && p->speed / 2.0 >= 1.0) {
-				p->speed /= 1.25;
-			} else
-				p->speed = 1;
-			continue;
-		}
 
-		collided = false;
-		for (i = 1; i < (int) ceil(p->speed); ++i) {
-			if ((cells[(p->x - i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 || (p->x - i) < 3) {
-				collided = true;
-				break;
+			collided = false;
+			for (i = 1; i < (int) ceil(p->speed); ++i) {
+				if ((cells[(p->x + i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 ||
+					(p->x + i) > wWidth - 3) {
+					collided = true;
+					break;
+				}
 			}
+
+			if (i > 1 || (i == 1 && !collided)) {
+				--i;
+				cells[p->x + p->y * wWidth] = -1;
+				cells[(p->x + i) + (p->y + i) * wWidth] = j;
+				p->y += i;
+				p->x += i;
+				if (!collided && p->speed / 2.0 >= 1.0) {
+					p->speed /= 1.25;
+				} else
+					p->speed = 1;
+				continue;
+			}
+
+			collided = false;
+			for (i = 1; i < (int) ceil(p->speed); ++i) {
+				if ((cells[(p->x - i) + (p->y + i) * wWidth] != -1) || (p->y + i) >= wHeight - 3 || (p->x - i) < 3) {
+					collided = true;
+					break;
+				}
+			}
+
+			if (i > 1 || (i == 1 && !collided)) {
+				--i;
+				cells[p->x + p->y * wWidth] = -1;
+				cells[(p->x + i) + (p->y + i) * wWidth] = j;
+				p->y += i;
+				p->x -= i;
+				if (!collided && p->speed / 2.0 <= 1.0) {
+					p->speed /= 1.25;
+				} else
+					p->speed = 1;
+				continue;
+			}
+
+
 		}
-
-		if(i > 1 || (i == 1 && !collided)) {
-			--i;
-			cells[p->x + p->y * wWidth] = -1;
-			cells[(p->x + i) + (p->y + i) * wWidth] = j;
-			p->y += i;
-			p->x -= i;
-			if(!collided && p->speed / 2.0 <= 1.0) {
-				p->speed /= 1.25;
-			} else
-				p->speed = 1;
-			continue;
-		}
-
-
 	}
 
 
+}
+
+void GameLoop::setParticleValue() {
+	if(event.type == SDL_KEYDOWN) {
+		switch(event.key.keysym.scancode) {
+			case SDL_SCANCODE_S:
+				inputType = sand;
+				break;
+			case SDL_SCANCODE_W:
+				inputType = water;
+				break;
+			case SDL_SCANCODE_R:
+				inputType = rock;
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 
